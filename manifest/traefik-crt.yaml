@@ -1,0 +1,42 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  creationTimestamp: "2024-07-18T07:11:20Z"
+  generation: 1
+  labels:
+    app: traefik
+    app.kubernetes.io/instance: traefik
+  name: traefik-ingress-cert
+  namespace: traefik
+  ownerReferences:
+  - apiVersion: networking.k8s.io/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Ingress
+    name: traefik-dashboard
+    uid: 847a260e-ea43-4deb-9909-8e6913de20b6
+  resourceVersion: "238139"
+  uid: 48500e1e-80dd-4e1b-b2e4-d344e17db523
+spec:
+  dnsNames:
+  - traefik.osii.nneir-dev.pub.azure.novonordisk.com
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: default-issuer
+  secretName: traefik-ingress-cert
+  usages:
+  - digital signature
+  - key encipherment
+status:
+  conditions:
+  - lastTransitionTime: "2024-07-18T07:20:26Z"
+    message: Certificate is up to date and has not expired
+    observedGeneration: 1
+    reason: Ready
+    status: "True"
+    type: Ready
+  notAfter: "2024-10-16T06:20:24Z"
+  notBefore: "2024-07-18T06:20:25Z"
+  renewalTime: "2024-09-16T06:20:24Z"
+  revision: 1

@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+  namespace: limited
+data:
+  index.html: |-
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <title>Welcome to nginx!</title>
+    <style>
+    html { color-scheme: light dark; }
+    body { width: 35em; margin: 0 auto;
+    font-family: Tahoma, Verdana, Arial, sans-serif; }
+    </style>
+    </head>
+    <body>
+    <h1>Welcome to nginx!</h1>
+    <p>If you see this page, the nginx web server is successfully installed and
+    working. Further configuration is required.</p>
+
+    <p>Node Name: <!--#echo var="nodename"--></p>
+    <p>Pod Name: <!--#echo var="podname"--></p>
+
+    <p>For online documentation and support please refer to
+    <a href="http://nginx.org/">nginx.org</a>.<br/>
+    Commercial support is available at
+    <a href="http://nginx.com/">nginx.com</a>.</p>
+
+    <p><em>Thank you for using nginx.</em></p>
+    </body>
+    </html>
+  default.conf.template : |-
+    server {
+        listen       80;
+        listen  [::]:80;
+        server_name  localhost;
+
+        access_log  /var/log/nginx/host.access.log  main;
+
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+            ssi on;
+            set $podname "${POD_NAME}";
+            set $nodename "${NODE_NAME}";
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/share/nginx/html;
+        }
+    }

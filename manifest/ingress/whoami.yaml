@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whoami
+  namespace: test
+spec:
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+      - args:
+        - --verbose
+        env:
+        - name: WHOAMI_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        image: traefik/whoami
+        imagePullPolicy: Always
+        name: whoami
+      topologySpreadConstraints:
+      - labelSelector:
+          matchLabels:
+            app: whoami
+        maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami
+  namespace: test
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: whoami
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: whoami
+  name: whoami
+  namespace: test
+  annotations:
+    cert-manager.io/cluster-issuer: default-issuer
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure,web
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: whoami.osii.nneir-dev.pub.azure.novonordisk.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: whoami
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - whoami.osii.nneir-dev.pub.azure.novonordisk.com
+    secretName: whoami-ingress-cert
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test

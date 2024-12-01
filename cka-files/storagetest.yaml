@@ -1,0 +1,43 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: pv-volume
+  labels:
+      type: local
+spec:
+  storageClassName: demo
+  capacity:
+    storage: 1Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mydata"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pv-claim
+spec:
+  storageClassName: demo
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Mi
+---
+kind: Pod
+apiVersion: v1
+metadata:
+   name: pv-pod
+spec:
+  volumes:
+    - name: pv-storage
+      persistentVolumeClaim:
+        claimName: pv-claim
+  containers:
+    - name: pv-container
+      image: leodotcloud/swiss-army-knife:latest
+      command: ['sh', '-c', 'sleep 36000']
+      volumeMounts:
+        - mountPath: "/usr/share/nginx/html"
+          name: pv-storage

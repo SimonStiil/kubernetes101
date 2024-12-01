@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+  namespace: limited
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - image: nginx
+        name: nginx
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "10Mi"
+          limits:
+            memory: "100Mi"
+        volumeMounts:
+        - name: index
+          mountPath: /usr/share/nginx/html/index.html
+          subPath: index.html
+          readOnly: true
+        - name: conf
+          mountPath: /etc/nginx/templates/default.conf.template
+          subPath: default.conf.template
+          readOnly: true
+        - mountPath: /var/log/nginx/
+          name: logs-volume
+        env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 3
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: "kubernetes.io/hostname"
+            labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - nginx
+
+      volumes:
+      - name: index
+        configMap:
+          name: nginx-conf
+          items:
+          - key: index.html
+            path: index.html
+      - name: conf
+        configMap:
+          name: nginx-conf
+          items:
+          - key: default.conf.template
+            path: default.conf.template
+      - name: logs-volume
+        emptyDir:
+          sizeLimit: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+  namespace: limited
+spec:
+  ports:
+  - nodePort: 32000
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx
+  type: NodePort

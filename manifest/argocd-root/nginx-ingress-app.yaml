@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx-ingress
+  namespace: argocd
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      recurse: true
+    path: nginx-ingress
+    repoURL: git@github.com:NN-Research-Early-Development/nneir-cluster-config.git
+    targetRevision: osii
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
