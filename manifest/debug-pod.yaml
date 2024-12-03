@@ -1,0 +1,68 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: debug
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: debug
+  namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: debug
+  namespace: default
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: debug
+data:
+  install.sh: |-
+    #!/bin/bash
+    ARCH=$(uname -m)
+    case $ARCH in
+      armv5*) ARCH="armv5";;
+      armv6*) ARCH="armv6";;
+      armv7*) ARCH="arm";;
+      aarch64) ARCH="arm64";;
+      x86) ARCH="386";;
+      x86_64) ARCH="amd64";;
+      i686) ARCH="386";;
+      i386) ARCH="386";;
+    esac
+    export DEBIAN_FRONTEND=noninteractive
+    sed -i 's:^path-exclude=/usr/share/man:#path-exclude=/usr/share/man:' /etc/dpkg/dpkg.cfg.d/excludes
+    apt-get update
+    apt-get install --no-install-recommends -y ca-certificates curl dnsutils jq yq net-tools openssl openssh-client tmux nmap tree wget vim bash-completion
+    rm -rf /var/lib/apt/lists/*
+    curl -Lsf "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/$ARCH/kubectl" > /usr/local/bin/kubectl
+    chmod +x /usr/local/bin/kubectl
+    kubectl completion bash > /etc/bash_completion.d/kubectl
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: debug
+  namespace: default
+  labels:
+    app: debug
+spec:
+  containers:
+  - name: debug
+    image: ubuntu:noble
+    command: ["/bin/sleep", "3650d"]
+    volumeMounts:
+      - mountPath: /root/install.sh
+        name: config
+        subPath: install.sh
+  volumes:
+    - name: config
+      configMap:
+        name: debug
+        defaultMode: 0744
+  serviceAccountName: debug
