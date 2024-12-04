@@ -18,6 +18,7 @@ Full description and additional Linux, MacOS and Windows options on [kustomize g
 On x86-64 linux just installing the kustomize binary.
 ```bash
 curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+sudo mv kustomize /usr/local/bin/
 ```
 
 ### helm
@@ -45,9 +46,15 @@ Just because none of love to type out everything auto completion is available fo
 
 If on linux with bash here is a setup for all tools
 ```bash
-apt-get install bash-completion
+sudo apt-get install bash-completion
 kubectl completion bash |sudo tee /etc/bash_completion.d/kubectl
 kustomize completion bash |sudo tee /etc/bash_completion.d/kustomize
 helm completion bash |sudo tee /etc/bash_completion.d/helm
 sudo curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o /etc/bash_completion.d/git
+```
+
+other great tools to get
+```bash
+sudo apt-get install jq
+sudo wget https://github.com/mikefarah/yq/releases/download/v4.44.5/yq_linux_amd64 -O /usr/bin/yq
 ```
