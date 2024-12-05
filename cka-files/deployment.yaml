@@ -4,9 +4,8 @@ metadata:
   labels:
     app: nginx
   name: nginx
-  namespace: limited
 spec:
-  replicas: 3
+  replicas: 5
   selector:
     matchLabels:
       app: nginx
@@ -15,10 +14,6 @@ spec:
       labels:
         app: nginx
     spec:
-      tolerations:
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
       containers:
       - image: nginx
         name: nginx
@@ -89,20 +84,3 @@ spec:
       - name: logs-volume
         emptyDir:
           sizeLimit: 500Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: nginx
-  name: nginx
-  namespace: limited
-spec:
-  ports:
-  - nodePort: 32000
-    port: 80
-    protocol: TCP
-    targetPort: 80
-  selector:
-    app: nginx
-  type: NodePort
